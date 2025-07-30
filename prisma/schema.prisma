@@ -3,16 +3,53 @@ generator client {
   output   = "../generated/prisma"
 }
 
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model clientes {
-  id         Int       @id @default(autoincrement())
-  nome       String    @db.VarChar(100)
-  email      String    @unique @db.VarChar(100)
-  nickname   String?   @db.VarChar(50)
-  created_at DateTime? @default(now()) @db.Timestamp(6)
+// model clientes {
+//   id         Int       @id @default(autoincrement())
+//   nome       String    @db.VarChar(100)
+//   age        Int?
+//   email      String    @unique @db.VarChar(100)
+//   nickname   String?   @db.VarChar(50)
+//   created_at DateTime? @default(now()) @db.Timestamp(6)
+// }
+
+// Para criar uma tabela de forma manual, é possível utilizar a sintaxe acima
+// e ao final executar o comando `prisma migrate dev --name init`
+// para aplicar as alterações no banco de dados que esteja utilizando
+
+model Movie {
+  id          Int         @id @default(autoincrement()) //@id para indicar chave-primária
+  title       String      @db.VarChar(100)
+  description String      @db.Text
+  releaseDate DateTime    @db.Date
+  rating      Float // @db.Float não é suportado pelo Prisma, mas o tipo Float é adequado
+  details     MovieDetail @relation(fields: [detailId], references: [id], onDelete: Cascade) // detailId aponta para o Id em MovieDetail
+  detailId    Int         @unique // FK para MovieDetail, garantindo que cada Movie é unico
+  diretorId   Int // FK para Diretor
+  diretor     Diretor     @relation(fields: [diretorId], references: [id]) // Relacionamento com o modelo Diretor
+  createdAt   DateTime    @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime    @updatedAt @db.Timestamp(6)
+}
+
+model MovieDetail {
+  id        Int      @id @default(autoincrement())
+  director  String   @db.VarChar(100)
+  duration  Int // duração em minutos
+  genre     String   @db.VarChar(50)
+  language  String   @db.VarChar(50)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
+  // Movie     Movie[] // Criado automaticamente pelo Prisma para informar a relação 1:N
+  Movie     Movie? // Criado automaticamente pelo Prisma para informar a relação 1:1
+}
+
+model Diretor {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(100)
+
+  Movie Movie[]
 }
